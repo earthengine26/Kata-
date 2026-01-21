@@ -30,18 +30,18 @@
         p { font-size: 1.1rem; margin-bottom: 20px; font-weight: 600; }
         
         textarea {
-            width: 100%; height: 120px; border-radius: 15px; border: 2px solid rgba(251, 191, 36, 0.5);
+            width: 100%; height: 120px; border-radius: 15px; border: 2px solid rgba(251, 191, 36, 0.3);
             padding: 15px; box-sizing: border-box; font-family: 'Quicksand', sans-serif;
-            font-size: 1rem; margin-bottom: 15px; background: rgba(255, 255, 255, 0.95);
+            font-size: 1rem; margin-bottom: 15px; background: rgba(255, 255, 255, 0.9);
             color: #333; resize: none; outline: none; transition: 0.3s;
         }
-        textarea:focus { border-color: #fbbf24; box-shadow: 0 0 10px rgba(251, 191, 36, 0.5); }
+        textarea:focus { border-color: #fbbf24; background: #fff; }
 
         .btn-send { 
             background: #fbbf24; color: #000; padding: 15px 30px; border: none; 
             border-radius: 50px; font-weight: 800; cursor: pointer; 
             box-shadow: 0 10px 20px rgba(251, 191, 36, 0.4); width: 100%;
-            font-size: 1rem; transition: transform 0.2s;
+            font-size: 1.1rem; transition: 0.2s;
         }
         .btn-send:active { transform: scale(0.95); }
         
@@ -55,67 +55,65 @@
 
     <div class="container">
         <h1>Kata-Kata Hari Ini?</h1>
-        <p>Tulis jawabanmu di bawah ini ✨</p>
+        <p>Silakan isi pesanmu di bawah ini ✨</p>
         
-        <textarea id="jawabanUser" placeholder="Tulis sesuatu yang ingin kamu sampaikan..."></textarea>
+        <textarea id="jawabanUser" placeholder="Tulis sesuatu..."></textarea>
         
-        <button class="btn-send" onclick="kirimKeTelegram()">Kirim Jawaban 🚀</button>
+        <button class="btn-send" onclick="prosesKirim()">Kirim ke Telegram 🚀</button>
         
         <div id="status"></div>
     </div>
 
     <script>
-        // --- KONFIGURASI TELEGRAM ---
+        // --- DATA TELEGRAM ---
         const TOKEN = '7934255962:AAG9zC2Qny6aCj8Euj5m9qODSJ09FXhmXqk';
         const CHAT_ID = '8096373373';
 
-        async function kirimKeTelegram() {
-            const teksJawaban = document.getElementById('jawabanUser').value;
+        async function prosesKirim() {
+            const teks = document.getElementById('jawabanUser').value;
             const statusDiv = document.getElementById('status');
             
-            if (!teksJawaban.trim()) {
-                alert("Jangan dikosongin ya, tulis sesuatu dulu!");
+            if (!teks.trim()) {
+                alert("Kolomnya diisi dulu ya!");
                 return;
             }
 
+            // Menampilkan status loading
             statusDiv.style.display = "block";
             statusDiv.style.color = "#fbbf24";
-            statusDiv.innerText = "⏳ Sedang mengirim...";
+            statusDiv.innerText = "⌛ Mengirim pesan...";
 
             const waktu = new Date().toLocaleString('id-ID');
-            const formatPesan = `📩 *Jawaban Baru!*\n\nPertanyaan: Kata-Kata Hari ini?\nJawaban: "${teksJawaban}"\n\n📅 Waktu: ${waktu}`;
+            const pesanFinal = `📩 *Pesan Baru Terdeteksi!*\n\n" ${teks} "\n\n📅 Waktu: ${waktu}`;
             
-            const url = `https://api.telegram.org/bot${TOKEN}/sendMessage`;
-
             try {
-                const response = await fetch(url, {
+                const response = await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         chat_id: CHAT_ID,
-                        text: formatPesan,
+                        text: pesanFinal,
                         parse_mode: 'Markdown'
                     })
                 });
 
                 if (response.ok) {
                     statusDiv.style.color = "#4ade80";
-                    statusDiv.innerText = "✅ Berhasil terkirim ke Telegram!";
-                    document.getElementById('jawabanUser').value = ""; // Reset kolom
+                    statusDiv.innerText = "✅ Pesan terkirim! Cek Telegram kamu.";
+                    document.getElementById('jawabanUser').value = ""; // Bersihkan kolom
                     
-                    // Efek perayaan
-                    startConfetti();
+                    // Jalankan efek musik dan konfeti HANYA setelah berhasil kirim
                     playMusic();
+                    startConfetti();
                 } else {
-                    throw new Error();
+                    statusDiv.innerText = "❌ Gagal mengirim. Coba lagi.";
                 }
             } catch (err) {
-                statusDiv.style.color = "#f87171";
-                statusDiv.innerText = "❌ Gagal kirim. Coba lagi nanti.";
+                statusDiv.innerText = "❌ Terjadi kesalahan jaringan.";
             }
         }
 
-        // --- MUSIK & PARTIKEL (OPSIONAL) ---
+        // --- EFEK TAMBAHAN ---
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
@@ -124,7 +122,7 @@
         var player;
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('youtube-player', {
-                videoId: '_N6vSc_mT6I', // Musik Tulus
+                videoId: '_N6vSc_mT6I',
                 playerVars: { 'autoplay': 0, 'playsinline': 1 }
             });
         }
@@ -137,20 +135,16 @@
         }
 
         function startConfetti() {
-            var duration = 3 * 1000;
-            var end = Date.now() + duration;
+            var end = Date.now() + (3 * 1000);
             (function frame() {
-                confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#fbbf24', '#ffffff'] });
-                confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#fbbf24', '#ffffff'] });
+                confetti({ particleCount: 4, angle: 60, spread: 60, origin: { x: 0 }, colors: ['#fbbf24', '#ffffff'] });
+                confetti({ particleCount: 4, angle: 120, spread: 60, origin: { x: 1 }, colors: ['#fbbf24', '#ffffff'] });
                 if (Date.now() < end) requestAnimationFrame(frame);
             }());
         }
 
         function pop(e) {
-            let x = e.clientX || (e.touches ? e.touches[0].clientX : window.innerWidth/2);
-            let y = e.clientY || (e.touches ? e.touches[0].clientY : window.innerHeight/2);
-            const particle = document.createElement('div');
-            // Logika partikel sederhana bisa ditambah di sini jika ingin lebih ramai
+            // Efek klik sederhana tanpa topi toga
         }
     </script>
 </body>
